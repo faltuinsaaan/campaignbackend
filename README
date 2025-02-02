@@ -1,0 +1,104 @@
+Okay, let's break it down into a simpler, less technical explanation. Imagine you're building a system to send emails automatically, and you want it to be flexible and configurable.
+
+Think of it like a Mailroom with Rules:
+
+The Mailroom: This is your backend, built with Express.js, handling all the behind-the-scenes work.
+
+The Senders (Senders Model): These are the people (or email addresses) who will send the emails. Each sender has a daily limit of emails they can send, like a limit on how many letters they can drop in the mailbox. We keep track of how many letters they've sent each day.
+
+The Campaigns (Campaigns Model): These are your email campaigns, like a batch of letters you want to send out. Each campaign has:
+
+A date and time it should start sending.
+
+A time window it can send during the day (like office hours for mail delivery).
+
+A delay between each email sent (like spacing out the mail deliveries).
+
+A message to be sent.
+
+A list of available senders that can send the mail.
+
+Daily send limit for the overall campaign.
+
+We also keep track of how many emails the campaign has sent for the day.
+
+The Scheduler (Node-Schedule): This is like the mailroom schedule. It checks when each campaign should start, how many letters to send, which senders to use and when to send them, based on the campaign's rules.
+
+The Mail Delivery System (emailSender): This is a placeholder for the actual service that sends the emails. Imagine the truck that takes the letters from the mailroom and delivers them. In our code we use a sendEmail function and a placeholder where you'd use a real service like Nodemailer or SendGrid.
+
+The Rule Book (routes/campaigns.js): This is where all the rules for the mailroom are written. It tells the mailroom how to handle requests for managing campaigns:
+
+Get All Campaigns: "Show me all the current mail campaigns and their settings."
+
+Get a Specific Campaign: "Show me the details of a particular mail campaign."
+
+Create a New Campaign: "Set up a new batch of letters to send with these specific rules."
+
+Update a Campaign: "Change the rules of an existing mail campaign."
+
+Delete a Campaign: "Cancel a mail campaign and remove it from the system."
+
+Key Parts in Simple Terms:
+
+app.js (The Main Switchboard):
+
+Sets up the server (the mailroom's central hub).
+
+Connects to the database (where we keep records of senders and campaigns).
+
+Directs incoming requests to the right place.
+
+config/db.js (The Database Connector):
+
+Establishes the connection with our MongoDB database.
+
+models/ (The Record Keepers):
+
+sender.js: Defines how we store and keep records about each sender (their emails, names, sending limits etc.).
+
+campaign.js: Defines how we store and keep records about each campaign (dates, times, messages, senders, etc.).
+
+routes/campaigns.js (The Mailroom Rules):
+
+Handles requests related to email campaigns.
+
+Decides what to do when a request to create, get, update, or delete a campaign comes in.
+
+Uses the node-schedule to schedule tasks.
+
+Ensures that senders follow their daily limit rules.
+
+utils/emailSender.js (The Email Sender):
+
+It is a function that would handle the email sending itself by integrating with a email sending service, it currently logs a message but needs to be configured with an email sending service.
+
+How it All Works Together (The Flow):
+
+You (the user) make a request: You want to create a new campaign, so you send a request to the /api/campaigns endpoint using POST in Postman with data like campaign name, date, time, message, and list of senders etc.
+
+The Mailroom Rules (routes/campaigns.js) Handle the Request:
+
+It reads the data you sent, creates a new record in the database (using the models), and schedules the campaign.
+
+The Scheduler (node-schedule) Sends the Emails:
+
+When the scheduled time arrives, the scheduler uses findAvailableSender to determine an available sender.
+
+It uses the mail delivery system (emailSender) to send the emails.
+
+It records the emails sent.
+
+You can Manage Everything:
+
+You can view all your campaigns, update them, or cancel them using different GET, PUT, and DELETE requests in Postman.
+
+In short, think of this backend as:
+
+A system to manage and schedule email campaigns.
+
+It keeps track of senders and their limits.
+
+It ensures that emails are sent according to your specific rules.
+
+The Key to remember is, the scheduler will initiate the mail delivery only based on the timing and intervals that you specify in the POST or PUT request to /api/campaigns, and that you will need to create senders separately with a database interface and then get the sender ids to be able to pass in as senders for each campaign.
+
