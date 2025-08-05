@@ -1,104 +1,86 @@
-Okay, let's break it down into a simpler, less technical explanation. Imagine you're building a system to send emails automatically, and you want it to be flexible and configurable.
+Email Automation Backend - 
 
-Think of it like a Mailroom with Rules:
+This project is a backend system for managing and scheduling automated email campaigns. It is built with Express.js, uses MongoDB for storage, and leverages node-schedule to control when and how emails are sent, following a set of configurable rules.
 
-The Mailroom: This is your backend, built with Express.js, handling all the behind-the-scenes work.
+Core Concepts
 
-The Senders (Senders Model): These are the people (or email addresses) who will send the emails. Each sender has a daily limit of emails they can send, like a limit on how many letters they can drop in the mailbox. We keep track of how many letters they've sent each day.
+The Backend (Express.js)
+Handles HTTP requests, routing, scheduling logic, and communication with the database.
 
-The Campaigns (Campaigns Model): These are your email campaigns, like a batch of letters you want to send out. Each campaign has:
+Senders (models/sender.js)
+Represents the email accounts used to send emails.
+Each sender has a daily sending limit.
+The system keeps track of how many emails each sender has sent per day.
 
-A date and time it should start sending.
+Campaigns (models/campaign.js)
+Represents an email campaign with the following configuration:
 
-A time window it can send during the day (like office hours for mail delivery).
+Start date and time
 
-A delay between each email sent (like spacing out the mail deliveries).
+Daily sending window (for example, 9 AM to 6 PM)
 
-A message to be sent.
+Delay between each email
 
-A list of available senders that can send the mail.
+Email message content
 
-Daily send limit for the overall campaign.
+List of sender IDs to use
 
-We also keep track of how many emails the campaign has sent for the day.
+Overall daily send limit
+Tracks how many emails have been sent each day for the campaign.
 
-The Scheduler (Node-Schedule): This is like the mailroom schedule. It checks when each campaign should start, how many letters to send, which senders to use and when to send them, based on the campaign's rules.
 
-The Mail Delivery System (emailSender): This is a placeholder for the actual service that sends the emails. Imagine the truck that takes the letters from the mailroom and delivers them. In our code we use a sendEmail function and a placeholder where you'd use a real service like Nodemailer or SendGrid.
+Scheduler (node-schedule)
+Schedules campaigns based on their start times.
+Checks available senders and ensures they haven't exceeded their daily limits.
+Triggers email sending within the defined time window and delay intervals.
 
-The Rule Book (routes/campaigns.js): This is where all the rules for the mailroom are written. It tells the mailroom how to handle requests for managing campaigns:
+Mail Delivery System (utils/emailSender.js)
+This handles the actual email sending process.
+Currently, it's a placeholder that logs output, but it can be configured to use real services like Nodemailer, SendGrid, or Mailgun.
 
-Get All Campaigns: "Show me all the current mail campaigns and their settings."
+Campaign Routes (routes/campaigns.js)
+Handles API endpoints for managing campaigns.
+Includes the following operations:
 
-Get a Specific Campaign: "Show me the details of a particular mail campaign."
+Get all campaigns
 
-Create a New Campaign: "Set up a new batch of letters to send with these specific rules."
+Get a specific campaign
 
-Update a Campaign: "Change the rules of an existing mail campaign."
+Create a new campaign
 
-Delete a Campaign: "Cancel a mail campaign and remove it from the system."
+Update an existing campaign
 
-Key Parts in Simple Terms:
+Delete a campaign
+Campaigns are scheduled during creation or update, and all sender limits are respected during email sending.
 
-app.js (The Main Switchboard):
 
-Sets up the server (the mailroom's central hub).
+Database Connector (config/db.js)
+Connects the application to a MongoDB database using Mongoose.
 
-Connects to the database (where we keep records of senders and campaigns).
+Main App File (app.js)
+Sets up the server, connects to the database, and loads the routes.
 
-Directs incoming requests to the right place.
+How It Works
 
-config/db.js (The Database Connector):
+1. You send a POST request to /api/campaigns with the campaign configuration: name, date, time window, message, sender list, etc.
 
-Establishes the connection with our MongoDB database.
 
-models/ (The Record Keepers):
+2. The server creates the campaign in the database and schedules it based on the provided timing.
 
-sender.js: Defines how we store and keep records about each sender (their emails, names, sending limits etc.).
 
-campaign.js: Defines how we store and keep records about each campaign (dates, times, messages, senders, etc.).
+3. At the scheduled time, node-schedule checks which senders are available (within their limits) and sends emails one by one, respecting delays.
 
-routes/campaigns.js (The Mailroom Rules):
 
-Handles requests related to email campaigns.
+4. You can manage campaigns using GET, PUT, and DELETE requests.
 
-Decides what to do when a request to create, get, update, or delete a campaign comes in.
 
-Uses the node-schedule to schedule tasks.
+5. Sender records must be created manually in the database before using their IDs in campaigns.
 
-Ensures that senders follow their daily limit rules.
 
-utils/emailSender.js (The Email Sender):
 
-It is a function that would handle the email sending itself by integrating with a email sending service, it currently logs a message but needs to be configured with an email sending service.
+In summary
 
-How it All Works Together (The Flow):
-
-You (the user) make a request: You want to create a new campaign, so you send a request to the /api/campaigns endpoint using POST in Postman with data like campaign name, date, time, message, and list of senders etc.
-
-The Mailroom Rules (routes/campaigns.js) Handle the Request:
-
-It reads the data you sent, creates a new record in the database (using the models), and schedules the campaign.
-
-The Scheduler (node-schedule) Sends the Emails:
-
-When the scheduled time arrives, the scheduler uses findAvailableSender to determine an available sender.
-
-It uses the mail delivery system (emailSender) to send the emails.
-
-It records the emails sent.
-
-You can Manage Everything:
-
-You can view all your campaigns, update them, or cancel them using different GET, PUT, and DELETE requests in Postman.
-
-In short, think of this backend as:
-
-A system to manage and schedule email campaigns.
-
-It keeps track of senders and their limits.
-
-It ensures that emails are sent according to your specific rules.
-
-The Key to remember is, the scheduler will initiate the mail delivery only based on the timing and intervals that you specify in the POST or PUT request to /api/campaigns, and that you will need to create senders separately with a database interface and then get the sender ids to be able to pass in as senders for each campaign.
+This system allows you to define and control when and how your email campaigns are sent.
+It keeps track of each sender’s usage, ensures limits are respected, and follows your campaign configuration precisely.
+Campaigns will only be triggered if their timing and conditions are correctly defined, and valid sender IDs are provided.
 
